@@ -1,50 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 
-// Reine Funktion für die Filterung der Autos
-function filterCars(cars, searchTerm) {
+// Filter Cars nach Marke
+const filterCars = (cars, searchTerm) => {
     return cars.filter(car =>
         car.brand.toLowerCase().includes(searchTerm.toLowerCase())
     );
-}
+};
 
-// Funktion zum Hinzufügen eines neuen Autos (Unveränderliche Daten)
-function addCar(newCar, cars) {
+// Autos hinzufügen (Unveränderliche Daten)
+const addCar = (newCar, cars) => {
     return [...cars, newCar];
-}
+};
 
-// Funktion zum Laden von Autos (mit Seiteneffekt)
-async function loadCars(setCars, setError) {
+// Autos laden (mit Seiteneffekt)
+const loadCars = async (setCars, setError) => {
     try {
         const response = await fetch("http://localhost:8080/cars");
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         setCars(data);
     } catch (error) {
         setError(error.message);
     }
-}
+};
 
-// Funktion zum Löschen eines Autos
-async function deleteCar(id, setCars, setError) {
-    try {
-        const response = await fetch(`http://localhost:8080/cars/${id}`, {
-            method: "DELETE",
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        setCars(prevCars => prevCars.filter(car => car.id !== id));
-    } catch (error) {
-        setError(error.message);
-    }
-}
-
-// Funktion für die Sortierung basierend auf Benutzerwahl
-function dynamicSortCars(cars, sortAttribute, sortOrder) {
+// Dynamische Sortierung basierend auf Attribut und Reihenfolge
+const dynamicSortCars = (cars, sortAttribute, sortOrder) => {
     return [...cars].sort((a, b) => {
         if (sortOrder === "asc") {
             return a[sortAttribute] > b[sortAttribute] ? 1 : -1;
@@ -52,50 +35,113 @@ function dynamicSortCars(cars, sortAttribute, sortOrder) {
             return a[sortAttribute] < b[sortAttribute] ? 1 : -1;
         }
     });
-}
+};
 
+// Löschen eines Autos
+const deleteCar = async (id, setCars, cars, setError) => {
+    try {
+        const response = await fetch(`http://localhost:8080/cars/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        if (!response.ok) throw new Error(`Fehler: ${response.status} - ${response.statusText}`);
+
+        // Auto aus der Liste entfernen
+        const updatedCars = cars.filter(car => car.id !== id);
+        setCars(updatedCars);  // Liste aktualisieren
+    } catch (error) {
+        setError(error.message);
+    }
+};
+
+// Hinzufügen eines neuen Autos
+const handleAddCar = async (newCar, setCars, cars, setError) => {
+    try {
+        const response = await fetch("http://localhost:8080/cars", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newCar),
+        });
+        if (!response.ok) throw new Error(`Fehler: ${response.status} - ${response.statusText}`);
+
+        const addedCar = await response.json();
+        const updatedCars = addCar(addedCar, cars);
+        setCars(updatedCars);  // Liste mit neuem Auto aktualisieren
+    } catch (error) {
+        setError(error.message);
+    }
+};
+
+// Hauptkomponente
 export default function Home() {
     const [cars, setCars] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [error, setError] = useState(null);
-
-    // Sortierattribute und -reihenfolge aus dem Zustand verwalten
+    const [newCarData, setNewCarData] = useState({ brand: "", model: "", horsePower: "" });
     const [sortAttribute, setSortAttribute] = useState("horsePower");
     const [sortOrder, setSortOrder] = useState("asc");
+    const [currentPage, setCurrentPage] = useState(1);  // Aktuelle Seite
+    const carsPerPage = 8;  // Anzahl der Autos pro Seite
 
-    // Zustand für neues Auto
-    const [newCar, setNewCar] = useState({ brand: "", model: "", horsePower: "" });
+    // Gefilterte Autos basierend auf der Suchanfrage
+    const filteredCars = useMemo(() => filterCars(cars, searchTerm), [cars, searchTerm]);
 
-    // Gefilterte Autos
-    const filteredCars = filterCars(cars, searchTerm);
+    // Dynamisch sortierte Autos
+    const sortedCars = useMemo(() => dynamicSortCars(filteredCars, sortAttribute, sortOrder), [filteredCars, sortAttribute, sortOrder]);
 
-    // Dynamisch sortierte Autos basierend auf Auswahl
-    const sortedCars = dynamicSortCars(filteredCars, sortAttribute, sortOrder);
+    // Berechnung der Autos für die aktuelle Seite
+    const paginatedCars = useMemo(() => {
+        const indexOfLastCar = currentPage * carsPerPage;
+        const indexOfFirstCar = indexOfLastCar - carsPerPage;
+        return sortedCars.slice(indexOfFirstCar, indexOfLastCar);
+    }, [sortedCars, currentPage]);
 
+    // Gesamtzahl der Seiten
+    const totalPages = Math.ceil(sortedCars.length / carsPerPage);
+
+    // Lade Autos beim ersten Rendern
     useEffect(() => {
         loadCars(setCars, setError);
     }, []);
 
-    const handleAddCar = (e) => {
-        e.preventDefault();
-        if (!newCar.brand || !newCar.model || !newCar.horsePower) {
-            alert("Please fill out all fields.");
-            return;
-        }
-        const updatedCars = addCar(newCar, cars);
-        setCars(updatedCars);
-        setNewCar({ brand: "", model: "", horsePower: "" });
+    // Eingabeveränderung im Formular
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setNewCarData(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
     };
 
-    const handleDeleteCar = (id) => {
-        deleteCar(id, setCars, setError);
+    // Validierung der Formularfelder
+    const validateForm = () => {
+        const { brand, model, horsePower } = newCarData;
+        if (!brand || !model || !horsePower) {
+            return "Alle Felder müssen ausgefüllt werden!";
+        }
+        if (isNaN(horsePower) || horsePower <= 0) {
+            return "PS muss eine gültige Zahl sein!";
+        }
+        return null;
+    };
+
+    // Formular absenden
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const formError = validateForm();
+        if (formError) {
+            setError(formError);
+        } else {
+            handleAddCar(newCarData, setCars, cars, setError);
+            setNewCarData({ brand: "", model: "", horsePower: "" });  // Formular zurücksetzen
+        }
     };
 
     return (
         <div className="App">
             <h1>Car Management</h1>
 
-            {error && <p className="error">Error: {error}</p>}
+
 
             <button onClick={() => loadCars(setCars, setError)}>Load Cars</button>
 
@@ -125,7 +171,7 @@ export default function Home() {
                         checked={sortAttribute === "model"}
                         onChange={(e) => setSortAttribute(e.target.value)}
                     />
-                    Model
+                    Modell
                 </label>
                 <label>
                     <input
@@ -162,11 +208,13 @@ export default function Home() {
             </div>
 
             <ul>
-                {sortedCars.length > 0 ? (
-                    sortedCars.map(car => (
+                {paginatedCars.length > 0 ? (
+                    paginatedCars.map(car => (
                         <li key={car.id}>
                             {car.brand} {car.model} ({car.horsePower} HP)
-                            <button onClick={() => handleDeleteCar(car.id)}>Delete</button>
+                            <button onClick={() => deleteCar(car.id, setCars, cars, setError)}>
+                                Delete
+                            </button>
                         </li>
                     ))
                 ) : (
@@ -174,25 +222,45 @@ export default function Home() {
                 )}
             </ul>
 
-            <form onSubmit={handleAddCar}>
-                <h3>Add a New Car</h3>
+            {/* Paginierung */}
+            <div className="pagination">
+                <button
+                    onClick={() => setCurrentPage((prevPage) => Math.max(prevPage - 1, 1))}
+                    disabled={currentPage === 1}
+                >
+                    Previous
+                </button>
+                <span>Page {currentPage} of {totalPages}</span>
+                <button
+                    onClick={() => setCurrentPage((prevPage) => Math.min(prevPage + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                >
+                    Next
+                </button>
+            </div>
+
+            <h2>Add New Car</h2>
+            <form onSubmit={handleSubmit}>
                 <input
                     type="text"
+                    name="brand"
+                    value={newCarData.brand}
+                    onChange={handleInputChange}
                     placeholder="Brand"
-                    value={newCar.brand}
-                    onChange={(e) => setNewCar({ ...newCar, brand: e.target.value })}
                 />
                 <input
                     type="text"
+                    name="model"
+                    value={newCarData.model}
+                    onChange={handleInputChange}
                     placeholder="Model"
-                    value={newCar.model}
-                    onChange={(e) => setNewCar({ ...newCar, model: e.target.value })}
                 />
                 <input
                     type="number"
-                    placeholder="HorsePower"
-                    value={newCar.horsePower}
-                    onChange={(e) => setNewCar({ ...newCar, horsePower: e.target.value })}
+                    name="horsePower"
+                    value={newCarData.horsePower}
+                    onChange={handleInputChange}
+                    placeholder="Horsepower"
                 />
                 <button type="submit">Add Car</button>
             </form>
