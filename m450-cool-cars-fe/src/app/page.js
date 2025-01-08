@@ -143,16 +143,16 @@ export default function Home() {
 
 
 
-            <button onClick={() => loadCars(setCars, setError)}>Load Cars</button>
+            <button onClick={() => loadCars(setCars, setError)}>Autos laden</button>
 
             <input
                 type="text"
-                placeholder="Search by brand"
+                placeholder="Nach Marke suchen"
                 onChange={e => setSearchTerm(e.target.value)}
             />
 
             <div className="sort-options">
-                <h3>Sort by:</h3>
+                <h3>Sortieren nach:</h3>
                 <label>
                     <input
                         type="radio"
@@ -184,7 +184,7 @@ export default function Home() {
                     PS
                 </label>
 
-                <h3>Order:</h3>
+                <h3>Reihenfolge:</h3>
                 <label>
                     <input
                         type="radio"
@@ -211,9 +211,9 @@ export default function Home() {
                 {paginatedCars.length > 0 ? (
                     paginatedCars.map(car => (
                         <li key={car.id}>
-                            {car.brand} {car.model} ({car.horsePower} HP)
+                            {car.brand} {car.model} ({car.horsePower} PS)
                             <button onClick={() => deleteCar(car.id, setCars, cars, setError)}>
-                                Delete
+                                löschen
                             </button>
                         </li>
                     ))
@@ -228,41 +228,41 @@ export default function Home() {
                     onClick={() => setCurrentPage((prevPage) => Math.max(prevPage - 1, 1))}
                     disabled={currentPage === 1}
                 >
-                    Previous
+                    vorherige Seite
                 </button>
-                <span>Page {currentPage} of {totalPages}</span>
+                <span>Seite {currentPage} von {totalPages}</span>
                 <button
                     onClick={() => setCurrentPage((prevPage) => Math.min(prevPage + 1, totalPages))}
                     disabled={currentPage === totalPages}
                 >
-                    Next
+                    nächste Seite
                 </button>
             </div>
 
-            <h2>Add New Car</h2>
+            <h2>Neues Auto hinzufügen</h2>
             <form onSubmit={handleSubmit}>
                 <input
                     type="text"
                     name="brand"
                     value={newCarData.brand}
                     onChange={handleInputChange}
-                    placeholder="Brand"
+                    placeholder="Marke"
                 />
                 <input
                     type="text"
                     name="model"
                     value={newCarData.model}
                     onChange={handleInputChange}
-                    placeholder="Model"
+                    placeholder="Modell"
                 />
                 <input
                     type="number"
                     name="horsePower"
                     value={newCarData.horsePower}
                     onChange={handleInputChange}
-                    placeholder="Horsepower"
+                    placeholder="PS"
                 />
-                <button type="submit">Add Car</button>
+                <button type="submit">Auto hinzufügen</button>
             </form>
         </div>
     );
