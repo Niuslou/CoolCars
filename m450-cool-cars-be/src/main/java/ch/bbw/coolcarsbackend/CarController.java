@@ -3,10 +3,7 @@ package ch.bbw.coolcarsbackend;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -43,4 +40,23 @@ public class CarController implements ApplicationRunner {
     public Car getACar(@PathVariable int id) {
         return new Car(id, "Ford", "Mustang", 450);
     }
+
+    @PostMapping("cars")
+    public Car AddCar(@RequestBody Car car) {
+        Car newCar = carRepository.save(car);
+        return newCar;
+    }
+
+    @DeleteMapping("cars/{id}")
+    public void removeCar(@PathVariable int id) {
+        if (carRepository.existsById(id)) {
+            carRepository.deleteById(id);
+            System.out.println("Car with ID " + id + " has been deleted.");
+        } else {
+            throw new IllegalArgumentException("Car with ID " + id + " does not exist.");
+        }
+    }
 }
+
+
+
