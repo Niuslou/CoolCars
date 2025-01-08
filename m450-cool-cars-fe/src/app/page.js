@@ -65,26 +65,37 @@ export default function Home() {
     const [sortAttribute, setSortAttribute] = useState("horsePower");
     const [sortOrder, setSortOrder] = useState("asc");
 
+    // Paging-Zustand
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
     // Gefilterte Autos
     const filteredCars = filterCars(cars, searchTerm);
 
     // Dynamisch sortierte Autos basierend auf Auswahl
     const sortedCars = dynamicSortCars(filteredCars, sortAttribute, sortOrder);
 
+    // Paginierte Autos
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentCars = sortedCars.slice(indexOfFirstItem, indexOfLastItem);
+
+    const totalPages = Math.ceil(sortedCars.length / itemsPerPage);
+
     return (
         <div className="App">
             <h1>Car Management</h1>
 
-            <button onClick={() => loadCars(setCars)}>Load Cars</button>
+            <button onClick={() => loadCars(setCars)}>Autos laden</button>
 
             <input
                 type="text"
-                placeholder="Search by brand"
+                placeholder="Nach Marke suchen"
                 onChange={e => setSearchTerm(e.target.value)}
             />
 
             <div className="sort-options">
-                <h3>Sort by:</h3>
+                <h3>Sortieren nach:</h3>
                 <label>
                     <input
                         type="radio"
@@ -116,7 +127,7 @@ export default function Home() {
                     PS
                 </label>
 
-                <h3>Order:</h3>
+                <h3>Reihenfolge:</h3>
                 <label>
                     <input
                         type="radio"
@@ -140,8 +151,8 @@ export default function Home() {
             </div>
 
             <ul>
-                {sortedCars.length > 0 ? (
-                    sortedCars.map(car => (
+                {currentCars.length > 0 ? (
+                    currentCars.map(car => (
                         <li key={car.id}>
                             {car.brand} {car.model} ({car.horsePower} HP)
                         </li>
@@ -150,6 +161,22 @@ export default function Home() {
                     <p className="no-data">No cars found</p>
                 )}
             </ul>
+
+            <div className="pagination">
+                <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                >
+                    Previous
+                </button>
+                <span>Page {currentPage} of {totalPages}</span>
+                <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                >
+                    Next
+                </button>
+            </div>
         </div>
     );
 }
