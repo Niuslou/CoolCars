@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import CarForm from "@/app/carform/page";
-import Link from "next/link";
+import { useState, useEffect } from "react";
 
 // Reine Funktion für die Filterung der Autos
 function filterCars(cars, searchTerm) {
@@ -12,38 +10,38 @@ function filterCars(cars, searchTerm) {
 }
 
 // Funktion zum Hinzufügen eines neuen Autos (Unveränderliche Daten)
-function addCar(newCar, setCars) {
-    setCars(prevCars => [...prevCars, newCar]);
+function addCar(newCar, cars) {
+    return [...cars, newCar];
 }
 
-// Höhere Funktion (Higher-Order Function), die eine Funktion zum Sortieren von Autos zurückgibt
-function sortCars(attribute, order = "asc") {
-    return (cars) => {
-        return [...cars].sort((a, b) =>
-            order === "asc" ? a[attribute] - b[attribute] : b[attribute] - a[attribute]
-        );
-    };
+// Funktion zum Laden von Autos (mit Seiteneffekt)
+async function loadCars(setCars, setError) {
+    try {
+        const response = await fetch("http://localhost:8080/cars");
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setCars(data);
+    } catch (error) {
+        setError(error.message);
+    }
 }
 
-// Funktion zum Laden von Autos (reine Funktion, keine Seiteneffekte)
-function loadCars(setCars) {
-    fetch("http://localhost:8080/cars")
-        .then(response => response.json())
-        .then(data => setCars(data))
-        .catch(err => console.error("Error fetching cars:", err));
+// Funktion zum Löschen eines Autos
+async function deleteCar(id, setCars, setError) {
+    try {
+        const response = await fetch(`http://localhost:8080/cars/${id}`, {
+            method: "DELETE",
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        setCars(prevCars => prevCars.filter(car => car.id !== id));
+    } catch (error) {
+        setError(error.message);
+    }
 }
-
-// Memoize-Funktion (Vermeidung wiederholter Berechnungen)
-const memoize = (fn) => {
-    const cache = {};
-    return (...args) => {
-        const key = JSON.stringify(args);
-        if (key in cache) return cache[key];
-        const result = fn(...args);
-        cache[key] = result;
-        return result;
-    };
-};
 
 // Funktion für die Sortierung basierend auf Benutzerwahl
 function dynamicSortCars(cars, sortAttribute, sortOrder) {
@@ -65,9 +63,8 @@ export default function Home() {
     const [sortAttribute, setSortAttribute] = useState("horsePower");
     const [sortOrder, setSortOrder] = useState("asc");
 
-    // Paging-Zustand
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+    // Zustand für neues Auto
+    const [newCar, setNewCar] = useState({ brand: "", model: "", horsePower: "" });
 
     // Gefilterte Autos
     const filteredCars = filterCars(cars, searchTerm);
@@ -75,27 +72,41 @@ export default function Home() {
     // Dynamisch sortierte Autos basierend auf Auswahl
     const sortedCars = dynamicSortCars(filteredCars, sortAttribute, sortOrder);
 
-    // Paginierte Autos
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentCars = sortedCars.slice(indexOfFirstItem, indexOfLastItem);
+    useEffect(() => {
+        loadCars(setCars, setError);
+    }, []);
 
-    const totalPages = Math.ceil(sortedCars.length / itemsPerPage);
+    const handleAddCar = (e) => {
+        e.preventDefault();
+        if (!newCar.brand || !newCar.model || !newCar.horsePower) {
+            alert("Please fill out all fields.");
+            return;
+        }
+        const updatedCars = addCar(newCar, cars);
+        setCars(updatedCars);
+        setNewCar({ brand: "", model: "", horsePower: "" });
+    };
+
+    const handleDeleteCar = (id) => {
+        deleteCar(id, setCars, setError);
+    };
 
     return (
         <div className="App">
             <h1>Car Management</h1>
 
-            <button onClick={() => loadCars(setCars)}>Autos laden</button>
+            {error && <p className="error">Error: {error}</p>}
+
+            <button onClick={() => loadCars(setCars, setError)}>Load Cars</button>
 
             <input
                 type="text"
-                placeholder="Nach Marke suchen"
+                placeholder="Search by brand"
                 onChange={e => setSearchTerm(e.target.value)}
             />
 
             <div className="sort-options">
-                <h3>Sortieren nach:</h3>
+                <h3>Sort by:</h3>
                 <label>
                     <input
                         type="radio"
@@ -127,7 +138,7 @@ export default function Home() {
                     PS
                 </label>
 
-                <h3>Reihenfolge:</h3>
+                <h3>Order:</h3>
                 <label>
                     <input
                         type="radio"
@@ -151,10 +162,11 @@ export default function Home() {
             </div>
 
             <ul>
-                {currentCars.length > 0 ? (
-                    currentCars.map(car => (
+                {sortedCars.length > 0 ? (
+                    sortedCars.map(car => (
                         <li key={car.id}>
                             {car.brand} {car.model} ({car.horsePower} HP)
+                            <button onClick={() => handleDeleteCar(car.id)}>Delete</button>
                         </li>
                     ))
                 ) : (
@@ -162,21 +174,28 @@ export default function Home() {
                 )}
             </ul>
 
-            <div className="pagination">
-                <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                >
-                    Previous
-                </button>
-                <span>Page {currentPage} of {totalPages}</span>
-                <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                >
-                    Next
-                </button>
-            </div>
+            <form onSubmit={handleAddCar}>
+                <h3>Add a New Car</h3>
+                <input
+                    type="text"
+                    placeholder="Brand"
+                    value={newCar.brand}
+                    onChange={(e) => setNewCar({ ...newCar, brand: e.target.value })}
+                />
+                <input
+                    type="text"
+                    placeholder="Model"
+                    value={newCar.model}
+                    onChange={(e) => setNewCar({ ...newCar, model: e.target.value })}
+                />
+                <input
+                    type="number"
+                    placeholder="HorsePower"
+                    value={newCar.horsePower}
+                    onChange={(e) => setNewCar({ ...newCar, horsePower: e.target.value })}
+                />
+                <button type="submit">Add Car</button>
+            </form>
         </div>
     );
 }
