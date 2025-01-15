@@ -1,0 +1,184 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+}
+
+h1, h2, h3 {
+    color: #444;
+    text-align: center;
+}
+
+.App {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+/* Flexbox Container for Search and Sorting Options */
+.search-sort-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Search Input */
+input[type="text"] {
+    flex: 1; /* Take up remaining space */
+    max-width: 300px;
+    padding: 10px 20px;
+    margin-right: 10px;
+    border: 1.5px solid black;
+    border-radius: 5px; /* Less rounded corners */
+    font-size: 1rem;
+    color: #333;
+    background-color: white;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]::placeholder {
+    color: black;
+}
+
+input[type="text"]:focus {
+    border-color: darkslategrey;
+    outline: none;
+    background-color: lightgrey;
+}
+
+/* Search Input number */
+input[type="number"] {
+    flex: 1; /* Take up remaining space */
+    max-width: 300px;
+    padding: 10px 20px;
+    margin-right: 10px;
+    border: 1.5px solid black;
+    border-radius: 5px; /* Less rounded corners */
+    font-size: 1rem;
+    color: #333;
+    background-color: white;
+    transition: all 0.3s ease;
+}
+
+input[type="number"]::placeholder {
+    color: black;
+}
+
+input[type="number"]:focus {
+    border-color: darkslategrey;
+    outline: none;
+    background-color: lightgrey;
+}
+
+/* Sortieren nach und Reihenfolge auf einer Linie */
+.sort-options {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px; /* Abstand zwischen den beiden Gruppen */
+}
+
+.sort-options .group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Abstand zwischen den Optionen innerhalb der Gruppe */
+}
+
+/* Überschriften innerhalb der Gruppen */
+.sort-options .group h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Radio Buttons (Sortieren nach und Reihenfolge) */
+.sort-options label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.sort-options input[type="radio"] {
+    accent-color: black; /* Customize radio button color */
+}
+
+/* Buttons */
+
+.delete button {
+    font-size: 0.9rem;
+    padding: 7px 10px;
+    margin-left: 10px;
+}
+button {
+    background-color: white;
+    color: black;
+    border: black solid 1.5px;
+    padding: 10px 20px;
+    border-radius: 5px; /* Less rounded corners */
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    margin-bottom: 5px;
+}
+
+button:hover {
+    background-color: black;
+    color: white;
+    transform: scale(1.1);
+}
+
+button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.pagination button {
+    padding: 8px 16px;
+    border-radius: 8px; /* Less rounded corners */
+}
+
+/* Auto hinzufügen Button neben den Eingabefeldern */
+.addCar {
+    display: flex;
+    gap: 10px; /* Abstand zwischen Eingabefeldern und Button */
+    align-items: center;
+    margin-top: 20px; /* Abstand nach oben */
+}
+
+/* Eingabefelder und Button */
+.addCar input[type="text"],
+.addCar input[type="number"] {
+    flex: none; /* Eingabefelder nicht dehnen */
+    width: 150px; /* Breite der Eingabefelder */
+}
+
+.addCar button {
+    flex: none; /* Button nicht dehnen */
+    white-space: nowrap; /* Kein Zeilenumbruch für Text im Button */
+}
+
+
+.no-data {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+}

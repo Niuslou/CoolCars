@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class CoolCarsBackendApplication {
 
     @Autowired
-    private CarRepository carRepository;
+    private CarRepository  carRepository;
 
     public static void main(String[] args) {
         SpringApplication.run(CoolCarsBackendApplication.class, args);

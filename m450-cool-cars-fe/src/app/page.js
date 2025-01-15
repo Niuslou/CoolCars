@@ -1,4 +1,5 @@
 "use client";
+import './styles.css';
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 
@@ -142,75 +143,85 @@ export default function Home() {
             <h1>Car Management</h1>
 
 
-
             <button onClick={() => loadCars(setCars, setError)}>Autos laden</button>
 
-            <input
-                type="text"
-                placeholder="Nach Marke suchen"
-                onChange={e => setSearchTerm(e.target.value)}
-            />
+            <div className="search-sort-container">
+                {/* Suchfeld */}
+                <input
+                    type="text"
+                    placeholder="Nach Marke suchen"
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
 
-            <div className="sort-options">
-                <h3>Sortieren nach:</h3>
-                <label>
-                    <input
-                        type="radio"
-                        name="sortAttribute"
-                        value="brand"
-                        checked={sortAttribute === "brand"}
-                        onChange={(e) => setSortAttribute(e.target.value)}
-                    />
-                    Marke
-                </label>
-                <label>
-                    <input
-                        type="radio"
-                        name="sortAttribute"
-                        value="model"
-                        checked={sortAttribute === "model"}
-                        onChange={(e) => setSortAttribute(e.target.value)}
-                    />
-                    Modell
-                </label>
-                <label>
-                    <input
-                        type="radio"
-                        name="sortAttribute"
-                        value="horsePower"
-                        checked={sortAttribute === "horsePower"}
-                        onChange={(e) => setSortAttribute(e.target.value)}
-                    />
-                    PS
-                </label>
+                {/* Sortieroptionen */}
+                <div className="sort-options">
+                    {/* Sortieren nach Gruppe */}
+                    <div className="group">
+                        <h3>Sortieren nach:</h3>
+                        <label>
+                            <input
+                                type="radio"
+                                name="sortAttribute"
+                                value="brand"
+                                checked={sortAttribute === "brand"}
+                                onChange={(e) => setSortAttribute(e.target.value)}
+                            />
+                            Marke
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                name="sortAttribute"
+                                value="model"
+                                checked={sortAttribute === "model"}
+                                onChange={(e) => setSortAttribute(e.target.value)}
+                            />
+                            Modell
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                name="sortAttribute"
+                                value="horsePower"
+                                checked={sortAttribute === "horsePower"}
+                                onChange={(e) => setSortAttribute(e.target.value)}
+                            />
+                            PS
+                        </label>
+                    </div>
 
-                <h3>Reihenfolge:</h3>
-                <label>
-                    <input
-                        type="radio"
-                        name="sortOrder"
-                        value="asc"
-                        checked={sortOrder === "asc"}
-                        onChange={(e) => setSortOrder(e.target.value)}
-                    />
-                    Aufsteigend
-                </label>
-                <label>
-                    <input
-                        type="radio"
-                        name="sortOrder"
-                        value="desc"
-                        checked={sortOrder === "desc"}
-                        onChange={(e) => setSortOrder(e.target.value)}
-                    />
-                    Absteigend
-                </label>
+                    {/* Reihenfolge Gruppe */}
+                    <div className="group">
+                        <h3>Reihenfolge:</h3>
+                        <label>
+                            <input
+                                type="radio"
+                                name="sortOrder"
+                                value="asc"
+                                checked={sortOrder === "asc"}
+                                onChange={(e) => setSortOrder(e.target.value)}
+                            />
+                            Aufsteigend
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                name="sortOrder"
+                                value="desc"
+                                checked={sortOrder === "desc"}
+                                onChange={(e) => setSortOrder(e.target.value)}
+                            />
+                            Absteigend
+                        </label>
+                    </div>
+                </div>
             </div>
+
 
             <ul>
                 {paginatedCars.length > 0 ? (
                     paginatedCars.map(car => (
-                        <li key={car.id}>
+                        <li className="delete" key={car.id}>
                             {car.brand} {car.model} ({car.horsePower} PS)
                             <button onClick={() => deleteCar(car.id, setCars, cars, setError)}>
                                 löschen
@@ -240,7 +251,7 @@ export default function Home() {
             </div>
 
             <h2>Neues Auto hinzufügen</h2>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="addCar">
                 <input
                     type="text"
                     name="brand"
